@@ -18,7 +18,6 @@
           onStart: function() { console.log('starting upload'); console.log(this); },
           onComplete: function(response) { console.log('got response: '); console.log(response); console.log(this); },
           onCancel: function() { console.log('cancelling: '); console.log(this); },
-          valid_extensions : ['gif','png','jpg','jpeg'],
           submit_button : null
         };
 
@@ -68,30 +67,22 @@
           var upload_file = function()
           {
             if($element.val() == '') return settings.onCancel.apply($element, [settings.params]);
-
             // make sure extension is valid
             var ext = $element.val().split('.').pop().toLowerCase();
-            if($.inArray(ext, settings.valid_extensions) == -1)
+            uploading_file = true;
+
+            // Creates the form, extra inputs and iframe used to 
+            //  submit / upload the file
+            wrapElement($element);
+
+            // Call user-supplied (or default) onStart(), setting
+            //  it's this context to the file DOM element
+            var ret = settings.onStart.apply($element, [settings.params]);
+
+            // let onStart have the option to cancel the upload
+            if(ret !== false)
             {
-              // Pass back to the user
-              settings.onComplete.apply($element, [{status: false, message: 'The select file type is invalid. File must be ' + settings.valid_extensions.join(', ') + '.'}, settings.params]);
-            } else
-            { 
-              uploading_file = true;
-
-              // Creates the form, extra inputs and iframe used to 
-              //  submit / upload the file
-              wrapElement($element);
-
-              // Call user-supplied (or default) onStart(), setting
-              //  it's this context to the file DOM element
-              var ret = settings.onStart.apply($element, [settings.params]);
-
-              // let onStart have the option to cancel the upload
-              if(ret !== false)
-              {
-                $element.parent('form').submit(function(e) { e.stopPropagation(); }).submit();
-              }
+              $element.parent('form').submit(function(e) { e.stopPropagation(); }).submit();
             }
           };
 
